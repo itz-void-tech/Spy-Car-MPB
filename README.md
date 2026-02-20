@@ -251,5 +251,5 @@ Full text should be placed in a `LICENSE` file in the repository root. Permissio
 
 ---
 
-If you'd like, I can also create a `LICENSE` file, add CI checks, or open a PR with this README.
+
 
