@@ -5,40 +5,21 @@ A compact, modular spy car / surveillance robot platform integrating live camera
 
 
 <table>
-  <tr>
+	<tr>
+		<td width="48%" valign="middle">
+			<img src="images/Spycarbasicmodel.jpeg" alt="SPY-CAR Prototype Chassis" width="420" />
+		</td>
+		<td width="52%" valign="middle">
+			SPY-CAR-MPB 
+			A compact, modular spy car / surveillance robot platform integrating live camera streaming, GPS geolocation, AI-based object detection, and remote control for rapid prototyping and field testing.
 
-    <!-- IMAGE -->
-    <td width="46%" align="center" valign="top">
-      <img src="images/Spycarbasicmodel.jpeg"
-           alt="SPY-CAR Prototype Chassis"
-           width="420"/>
-      <br/>
-      <sub><b>SPY-CAR Prototype Chassis</b></sub>
-    </td>
-
-    <!-- TEXT -->
-    <td width="54%" valign="top">
-
-<h2>🚗 SPY-CAR-MPB</h2>
-
-<p>
-A compact, modular <b>spy car / surveillance robot platform</b> built for rapid prototyping
-and real-world field deployment. The system integrates live video streaming,
-GPS geolocation, AI-based object detection, and dual remote control modes.
-</p>
-
-<h3>🔹 Core Capabilities</h3>
-
-<ul>
-  <li>🎥 Real-time camera streaming with AI detection</li>
-  <li>📍 GPS-tagged captures and telemetry logging</li>
-  <li>🌐 Web-based control + NRF hardware remote</li>
-  <li>🧩 Modular Arduino + Python hybrid architecture</li>
-</ul>
-
-    </td>
-
-  </tr>
+			- Real-time streaming & AI detection
+			- GPS-tagged captures and telemetry
+			- Web-based control + NRF remote support
+			- Modular Arduino + Python architecture
+    
+		</td>
+	</tr>
 </table>
 
 ---
