@@ -3,6 +3,44 @@
 
 A compact, modular spy car / surveillance robot platform integrating live camera streaming, GPS geolocation, AI-based object detection, and remote control for rapid prototyping and field testing.
 
+
+<table>
+  <tr>
+
+    <!-- IMAGE -->
+    <td width="46%" align="center" valign="top">
+      <img src="images/Spycarbasicmodel.jpeg"
+           alt="SPY-CAR Prototype Chassis"
+           width="420"/>
+      <br/>
+      <sub><b>SPY-CAR Prototype Chassis</b></sub>
+    </td>
+
+    <!-- TEXT -->
+    <td width="54%" valign="top">
+
+<h2>🚗 SPY-CAR-MPB</h2>
+
+<p>
+A compact, modular <b>spy car / surveillance robot platform</b> built for rapid prototyping
+and real-world field deployment. The system integrates live video streaming,
+GPS geolocation, AI-based object detection, and dual remote control modes.
+</p>
+
+<h3>🔹 Core Capabilities</h3>
+
+<ul>
+  <li>🎥 Real-time camera streaming with AI detection</li>
+  <li>📍 GPS-tagged captures and telemetry logging</li>
+  <li>🌐 Web-based control + NRF hardware remote</li>
+  <li>🧩 Modular Arduino + Python hybrid architecture</li>
+</ul>
+
+    </td>
+
+  </tr>
+</table>
+
 ---
 
 ## Table of Contents
@@ -147,24 +185,26 @@ Example mapping:
 ---
 
 ## Images & Demonstration
-Below are representative images from the `images/` folder. Captions describe each visual.
+Below are representative images from the `images/` folder presented in a centered gallery with modest sizes for readability.
 
-| Turret Web UI | Turret Model | Chassis Prototype |
-|---:|:---:|:---|
-| ![Turret Web UI](images/turret_web.png)  
-	*Turret live-control web UI.* | ![Turret Model](images/turretmodel.jpeg)  
-	*CAD / prototype turret model.* | ![Spy Car Model](images/Spycarbasicmodel.jpeg)  
-	*Chassis prototype and layout.*
+<p align="center">
+	<img src="images/turret_web.png" alt="Turret Web UI" width="300" style="margin:8px;" />
+	<img src="images/turretmodel.jpeg" alt="Turret Model" width="300" style="margin:8px;" />
+	<img src="images/Spycarbasicmodel.jpeg" alt="Chassis Prototype" width="300" style="margin:8px;" />
+</p>
+<p align="center"><em>Turret web UI — Turret model — Chassis prototype</em></p>
 
-| AI Detection Overlay | Field Demo (A) | Field Demo (B) |
-|---:|:---:|:---|
-| ![AI Weapon Detection](images/AI%20weapon%20ditection.jpeg)  
-	*Detection overlay sample from the AI module.* | ![Field Demo A](images/spycarwebcontrolapp/WhatsApp%20Image%202026-02-20%20at%205.20.24%20PM.jpeg)  
-	*On-field test photo (control UI visible).* | ![Field Demo B](images/spycarwebcontrolapp/WhatsApp%20Image%202026-02-20%20at%205.20.25%20PM.jpeg)  
-	*Alternate test view.*
+<p align="center">
+	<img src="images/AI weapon ditection.jpeg" alt="AI Weapon Detection" width="300" style="margin:8px;" />
+	<img src="images/spycarwebcontrolapp/WhatsApp Image 2026-02-20 at 5.20.24 PM.jpeg" alt="Field Demo A" width="300" style="margin:8px;" />
+	<img src="images/spycarwebcontrolapp/WhatsApp Image 2026-02-20 at 5.20.25 PM.jpeg" alt="Field Demo B" width="300" style="margin:8px;" />
+</p>
+<p align="center"><em>AI overlay — Field Demo A — Field Demo B</em></p>
 
-Additional: ![Field Demo C](images/spycarwebcontrolapp/WhatsApp%20Image%202026-02-20%20at%205.20.25%20PM%20%281%29.jpeg) — *Test run showing vehicle and operator.*
-
+<p align="center">
+	<img src="images/spycarwebcontrolapp/WhatsApp Image 2026-02-20 at 5.20.25 PM (1).jpeg" alt="Field Demo C" width="300" style="margin:8px;" />
+</p>
+<p align="center"><em>Operator and vehicle during a test run.</em></p>
 ---
 
 ## Project Structure
