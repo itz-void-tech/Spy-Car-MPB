@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TACTICAL AI BATCH ANALYSIS</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-glow: #00ffc3;
+            --secondary-glow: #7be27a;
+            --background: #050a08;
+            --surface: #101814;
+            --border: #324a3e;
+            --text-primary: #e0f0e8;
+            --text-secondary: #a0b8a8;
+            --error-color: #ff4d4d;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Share Tech Mono', monospace;
+            background-color: var(--background);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            background-image: radial-gradient(var(--primary-glow) 0.5px, transparent 0.5px), radial-gradient(var(--secondary-glow) 0.5px, var(--background) 0.5px);
+            background-size: 50px 50px;
+        }
+        .scanline-effect {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: repeating-linear-gradient(0deg, rgba(12, 255, 153, 0), rgba(12, 255, 153, 0.05) 1px, rgba(12, 255, 153, 0.1) 2px, rgba(12, 255, 153, 0.05) 3px, rgba(12, 255, 153, 0) 4px);
+            animation: scan 10s linear infinite; pointer-events: none; z-index: 1000;
+        }
+        @keyframes scan { 0% { background-position: 0 0; } 100% { background-position: 0 400px; } }
+        .container { max-width: 95%; margin: 0 auto; padding: 20px; position: relative; z-index: 2; }
+        .header { text-align: center; margin-bottom: 2rem; text-shadow: 0 0 10px var(--primary-glow), 0 0 20px var(--primary-glow); }
+        .header h1 { font-family: 'Orbitron', sans-serif; font-size: 3rem; font-weight: 900; letter-spacing: 4px; text-transform: uppercase; color: var(--primary-glow); }
+        .header p { color: var(--text-secondary); letter-spacing: 2px; }
+        .control-panel { background: var(--surface); border: 2px solid var(--border); padding: 2rem; backdrop-filter: blur(10px); margin-bottom: 2rem; }
+        .panel-title { font-family: 'Orbitron'; font-size: 1.5rem; color: var(--primary-glow); margin-bottom: 1.5rem; text-transform: uppercase; letter-spacing: 2px; text-align: center; }
+        .upload-area { border: 3px dashed var(--border); padding: 2rem; text-align: center; cursor: pointer; transition: all 0.3s ease; }
+        .upload-area.dragover { border-color: var(--primary-glow); background: rgba(0, 255, 195, 0.05); }
+        .upload-area span { font-size: 2rem; color: var(--primary-glow); }
+        .upload-area div { margin-top: 1rem; }
+        #file-input { display: none; }
+        #files-list { margin-top: 1.5rem; color: var(--text-secondary); background: var(--background); padding: 10px; border-left: 3px solid var(--primary-glow); font-size: 0.9rem;}
+        .scan-button { display: block; width: 50%; margin: 2rem auto 0; padding: 1rem; font-family: 'Orbitron'; font-size: 1.2rem; background: var(--primary-glow); color: var(--background); border: none; cursor: pointer; transition: all 0.3s ease; text-transform: uppercase; }
+        .scan-button:disabled { background: var(--border); color: var(--text-secondary); cursor: not-allowed; }
+        .scan-button:not(:disabled):hover { box-shadow: 0 0 20px var(--primary-glow); }
+        .global-error-message { background: rgba(255, 77, 77, 0.1); border: 1px solid var(--error-color); color: #ffb8b8; padding: 1rem; text-align: center; margin-bottom: 1rem; display: none;}
+        
+        #results-area { display: flex; flex-direction: column; gap: 2rem; }
+        .results-panel { background: var(--surface); border: 2px solid var(--border); padding: 2rem; animation: fadeIn 1s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .image-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+        .image-container { text-align: center; }
+        .image-label { display: block; margin-bottom: 1rem; font-family: 'Orbitron'; color: var(--secondary-glow); }
+        .image-display { width: 100%; border: 2px solid var(--border); object-fit: contain; background: black; cursor: zoom-in; transition: transform 0.2s ease, box-shadow 0.2s ease;}
+        .image-display:hover { transform: scale(1.02); box-shadow: 0 0 15px var(--secondary-glow);}
+        .threat-log { margin-top: 2rem; }
+        .threat-table { width: 100%; border-collapse: collapse; }
+        .threat-table th, .threat-table td { padding: 12px 15px; border-bottom: 1px solid var(--border); text-align: left; }
+        .threat-table th { background: var(--primary-glow); color: var(--background); font-family: 'Orbitron'; text-transform: uppercase; font-size: 0.9rem; }
+        .threat-table tbody tr:nth-child(even) { background: rgba(123, 226, 122, 0.05); }
+        .no-results-text { text-align: center; color: var(--text-secondary); padding: 1rem; }
+        
+        #loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5, 10, 8, 0.95); z-index: 9999; display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+        .loading-box { width: 800px; text-align: center; }
+        #loading-text { font-family: 'Orbitron'; font-size: 2rem; color: var(--primary-glow); margin-bottom: 1rem; text-shadow: 0 0 10px var(--primary-glow); }
+        .progress-bar-container { width: 100%; background: rgba(0, 0, 0, 0.5); border: 1px solid var(--border); padding: 4px; }
+        #progress-bar { width: 0%; height: 15px; background: var(--primary-glow); transition: width 0.5s ease-out; box-shadow: 0 0 10px var(--primary-glow); }
+        #loading-details { font-family: 'Share Tech Mono'; font-size: 1rem; color: var(--text-secondary); margin-top: 1.5rem; height: 2em;}
+
+        .image-modal {
+            display: none; position: fixed; z-index: 1001;
+            left: 0; top: 0; width: 100%; height: 100%;
+            background-color: rgba(5, 10, 8, 0.9);
+            backdrop-filter: blur(8px);
+            align-items: center; justify-content: center;
+        }
+        .modal-content {
+            margin: auto; display: block; max-width: 90%; max-height: 90%;
+            animation: zoomIn 0.3s ease-in-out;
+        }
+        @keyframes zoomIn { from {transform: scale(0.5); opacity: 0;} to {transform: scale(1); opacity: 1;} }
+        .modal-close {
+            position: absolute; top: 25px; right: 45px; color: #f1f1f1;
+            font-size: 40px; font-weight: bold; transition: 0.3s; cursor: pointer;
+        }
+        .modal-close:hover { color: var(--primary-glow); }
+        @media (max-width: 1200px) { .image-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="scanline-effect"></div>
+    <div id="loading-overlay">
+        <div class="loading-box">
+            <h2 id="loading-text">BATCH ANALYSIS IN PROGRESS</h2>
+            <div class="progress-bar-container"><div id="progress-bar"></div></div>
+            <div id="loading-details">Initiating scan...</div>
+        </div>
+    </div>
+    <div id="imageModal" class="image-modal">
+        <span class="modal-close" id="modalCloseBtn">×</span>
+        <img class="modal-content" id="modalImage">
+    </div>
+
+    <div class="container">
+        <header class="header"><h1>Tactical AI Batch Analysis</h1><p>Simultaneous Threat Detection for up to 10 Image Feeds</p></header>
+        <div id="global-error" class="global-error-message"></div>
+
+        <section class="control-panel">
+            <h2 class="panel-title">MISSION PARAMETERS</h2>
+            <form id="upload-form">
+                <div class="upload-area" id="upload-area"><span>[+]</span><div>DRAG & DROP UP TO 10 IMAGES OR CLICK TO SELECT</div></div>
+                <input type="file" name="images" id="file-input" accept="image/*" multiple>
+                <div id="files-list" style="display: none;"></div>
+                <button type="submit" class="scan-button" id="scan-button" disabled>INITIATE BATCH SCAN</button>
+            </form>
+        </section>
+
+        <section id="results-area"></section>
+    </div>
+
+    <script>
+        const uploadForm = document.getElementById('upload-form');
+        const uploadArea = document.getElementById('upload-area');
+        const fileInput = document.getElementById('file-input');
+        const scanButton = document.getElementById('scan-button');
+        const filesListDisplay = document.getElementById('files-list');
+        const resultsArea = document.getElementById('results-area');
+        const loadingOverlay = document.getElementById('loading-overlay');
+        const loadingText = document.getElementById('loading-text');
+        const progressBar = document.getElementById('progress-bar');
+        const loadingDetails = document.getElementById('loading-details');
+        const globalErrorDiv = document.getElementById('global-error');
+        const imageModal = document.getElementById('imageModal');
+        const modalImage = document.getElementById('modalImage');
+        const modalCloseBtn = document.getElementById('modalCloseBtn');
+
+        let selectedFiles = [];
+        const MAX_FILES = 10;
+
+        uploadArea.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', () => handleFiles(fileInput.files));
+        uploadArea.addEventListener('dragover', (e) => { e.preventDefault(); uploadArea.classList.add('dragover'); });
+        uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
+        uploadArea.addEventListener('drop', (e) => { e.preventDefault(); uploadArea.classList.remove('dragover'); handleFiles(e.dataTransfer.files); });
+
+        function handleFiles(files) {
+            const newFiles = Array.from(files);
+            if (newFiles.length > MAX_FILES) {
+                showGlobalError(`Maximum ${MAX_FILES} files allowed. You selected ${newFiles.length}. Please select again.`);
+                selectedFiles = [];
+                filesListDisplay.style.display = 'none';
+                scanButton.disabled = true;
+                return;
+            }
+            if (newFiles.length > 0) {
+                selectedFiles = newFiles;
+                filesListDisplay.innerHTML = `TARGETS ACQUIRED: <strong>${selectedFiles.length} file(s)</strong> selected.`;
+                filesListDisplay.style.display = 'block';
+                scanButton.disabled = false;
+                showGlobalError(null);
+            }
+        }
+        
+        uploadForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (selectedFiles.length === 0) return;
+            showGlobalError(null);
+            loadingOverlay.style.display = 'flex';
+            progressBar.style.width = '0%';
+            loadingText.textContent = "UPLOADING BATCH...";
+            loadingDetails.textContent = 'Preparing secure connection...';
+            scanButton.disabled = true;
+            resultsArea.innerHTML = '';
+            const formData = new FormData();
+            selectedFiles.forEach(file => formData.append('images', file));
+
+            try {
+                progressBar.style.width = '10%';
+                loadingText.textContent = `ANALYZING BATCH (0/${selectedFiles.length})`;
+                const response = await fetch('/process_batch', { method: 'POST', body: formData });
+                progressBar.style.width = '90%';
+                loadingText.textContent = 'ANALYSIS COMPLETE';
+                loadingDetails.textContent = 'Finalizing intelligence report...';
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || `HTTP error! Status: ${response.status}`);
+                }
+                const data = await response.json();
+                progressBar.style.width = '100%';
+                setTimeout(() => {
+                    loadingOverlay.style.display = 'none';
+                    displayResults(data.batch_results);
+                    scanButton.disabled = false;
+                }, 1000);
+            } catch (error) {
+                console.error('Error during batch processing:', error);
+                loadingOverlay.style.display = 'none';
+                showGlobalError(error.message);
+                scanButton.disabled = false;
+            }
+        });
+
+        function displayResults(batchResults) {
+            resultsArea.innerHTML = '';
+            if (!batchResults || batchResults.length === 0) {
+                resultsArea.innerHTML = '<div class="results-panel no-results-text">No results were returned from the analysis.</div>';
+                return;
+            }
+            batchResults.forEach(result => {
+                const resultPanel = document.createElement('div');
+                resultPanel.className = 'results-panel';
+                let tableRows = '';
+                if (result.results && result.results.length > 0) {
+                    result.results.forEach(det => {
+                        tableRows += `<tr><td>${det.model_name}</td><td>${det.class}</td><td>${det.confidence}</td></tr>`;
+                    });
+                } else {
+                    tableRows = '<tr><td colspan="3" class="no-results-text">No threats detected in this image.</td></tr>';
+                }
+                resultPanel.innerHTML = `
+                    <h2 class="panel-title">>_ ANALYSIS REPORT: ${result.filename}</h2>
+                    <div class="image-grid">
+                        <div class="image-container"><span class="image-label">>_ INCOMING FEED [ORIGINAL]</span><img src="data:image/jpeg;base64,${result.original}" class="image-display"></div>
+                        <div class="image-container"><span class="image-label">>_ AI ANALYSIS [PROCESSED]</span><img src="data:image/jpeg;base64,${result.processed}" class="image-display"></div>
+                    </div>
+                    <div class="threat-log">
+                        <h3 class="panel-title" style="margin-top: 2rem; font-size: 1.2rem;">THREAT LOG: ${result.results.length} DETECTIONS</h3>
+                        <table class="threat-table"><thead><tr><th>AI Model</th><th>Classification</th><th>Confidence</th></tr></thead><tbody>${tableRows}</tbody></table>
+                    </div>`;
+                resultsArea.appendChild(resultPanel);
+            });
+        }
+        
+        function showGlobalError(message) {
+            if (message) {
+                globalErrorDiv.textContent = `⚠️ ERROR: ${message}`;
+                globalErrorDiv.style.display = 'block';
+            } else {
+                globalErrorDiv.style.display = 'none';
+            }
+        }
+
+        resultsArea.addEventListener('click', function(e) {
+            if (e.target && e.target.classList.contains('image-display')) {
+                imageModal.style.display = 'flex';
+                modalImage.src = e.target.src;
+                document.body.style.overflow = 'hidden';
+            }
+        });
+        function closeModal() {
+            imageModal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+        modalCloseBtn.onclick = closeModal;
+        imageModal.addEventListener('click', function(e) {
+            if (e.target === imageModal) closeModal();
+        });
+        window.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && imageModal.style.display === 'flex') closeModal();
+        });
+    </script>
+</body>
+</html>
+
+<!-- <<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TACTICAL AI DETECTION SYSTEM</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-glow: #00ffc3;
+            --secondary-glow: #7be27a;
+            --background: #050a08;
+            --surface: #101814;
+            --border: #324a3e;
+            --text-primary: #e0f0e8;
+            --text-secondary: #a0b8a8;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Share Tech Mono', monospace;
+            background-color: var(--background);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            background-image: radial-gradient(var(--primary-glow) 0.5px, transparent 0.5px), radial-gradient(var(--secondary-glow) 0.5px, var(--background) 0.5px);
+            background-size: 50px 50px;
+        }
+        .scanline-effect {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(0deg, rgba(12, 255, 153, 0), rgba(12, 255, 153, 0.05) 1px, rgba(12, 255, 153, 0.1) 2px, rgba(12, 255, 153, 0.05) 3px, rgba(12, 255, 153, 0) 4px);
+            animation: scan 10s linear infinite;
+            pointer-events: none;
+            z-index: 1000;
+        }
+        @keyframes scan { 0% { background-position: 0 0; } 100% { background-position: 0 400px; } }
+        .container { max-width: 1800px; margin: 0 auto; padding: 20px; position: relative; z-index: 2; }
+        .header {
+            text-align: center; margin-bottom: 2rem;
+            text-shadow: 0 0 10px var(--primary-glow), 0 0 20px var(--primary-glow);
+            animation: text-flicker 4s infinite alternate;
+        }
+        .header h1 { font-family: 'Orbitron', sans-serif; font-size: 3rem; font-weight: 900; letter-spacing: 4px; text-transform: uppercase; color: var(--primary-glow); }
+        .header p { color: var(--text-secondary); letter-spacing: 2px; }
+        @keyframes text-flicker { 0%, 18%, 22%, 25%, 53%, 57%, 100% { text-shadow: 0 0 4px var(--primary-glow), 0 0 11px var(--primary-glow), 0 0 19px var(--primary-glow), 0 0 40px var(--secondary-glow); } 20%, 24%, 55% { text-shadow: none; } }
+        .grid-container { display: grid; grid-template-columns: 1fr 2fr; gap: 2rem; }
+        .control-panel, .results-panel { background: var(--surface); border: 2px solid var(--border); padding: 2rem; backdrop-filter: blur(10px); }
+        .panel-title { font-family: 'Orbitron'; font-size: 1.5rem; color: var(--primary-glow); margin-bottom: 1.5rem; text-transform: uppercase; letter-spacing: 2px; text-align: center; }
+        .upload-area { border: 3px dashed var(--border); padding: 2rem; text-align: center; cursor: pointer; transition: all 0.3s ease; }
+        .upload-area:hover, .upload-area.dragover { border-color: var(--primary-glow); background: rgba(0, 255, 195, 0.05); }
+        .upload-area span { font-size: 2rem; color: var(--primary-glow); }
+        .upload-area div { margin-top: 1rem; }
+        #file-input { display: none; }
+        #filename-display { margin-top: 1.5rem; text-align: center; color: var(--text-secondary); background: var(--background); padding: 10px; border-left: 3px solid var(--primary-glow); font-size: 0.9rem;}
+        .scan-button {
+            width: 100%; padding: 1rem; margin-top: 2rem; font-family: 'Orbitron'; font-size: 1.2rem;
+            background: var(--primary-glow); color: var(--background); border: none; cursor: pointer;
+            transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 1px;
+        }
+        .scan-button:disabled { background: var(--border); cursor: not-allowed; }
+        .scan-button:not(:disabled):hover { box-shadow: 0 0 20px var(--primary-glow); }
+        .error-message { background: rgba(255, 0, 68, 0.1); border: 1px solid #ff0044; color: #ffb8b8; padding: 1rem; text-align: center; margin-bottom: 1rem; }
+        .image-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+        .image-container { text-align: center; }
+        .image-container .image-label { display: block; margin-bottom: 1rem; font-family: 'Orbitron'; color: var(--secondary-glow); }
+        .image-display { width: 100%; border: 2px solid var(--border); object-fit: contain; background: black; }
+        .threat-log { margin-top: 2rem; }
+        .threat-table { width: 100%; border-collapse: collapse; }
+        .threat-table th, .threat-table td { padding: 12px 15px; border-bottom: 1px solid var(--border); text-align: left; }
+        .threat-table th { background: var(--primary-glow); color: var(--background); font-family: 'Orbitron'; text-transform: uppercase; font-size: 0.9rem; }
+        .threat-table tbody tr:nth-child(even) { background: rgba(123, 226, 122, 0.05); }
+        /* LOADING OVERLAY */
+        #loading-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(5, 10, 8, 0.95); z-index: 9999;
+            display: none; align-items: center; justify-content: center;
+            font-family: 'Share Tech Mono', monospace;
+        }
+        .loading-box { width: 600px; text-align: center; }
+        #loading-text { font-size: 1.5rem; color: var(--primary-glow); text-shadow: 0 0 5px var(--primary-glow); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 1.5rem; }
+        .progress-bar-container { width: 100%; background: rgba(0, 0, 0, 0.5); border: 1px solid var(--border); padding: 4px; }
+        #progress-bar { width: 0%; height: 10px; background: var(--primary-glow); transition: width 0.3s ease; box-shadow: 0 0 10px var(--primary-glow); }
+        #loading-details { font-size: 1rem; color: var(--text-secondary); margin-top: 1rem; }
+        /* RESPONSIVE DESIGN */
+        @media (max-width: 1200px) { .grid-container { grid-template-columns: 1fr; } .image-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 768px) { .header h1 { font-size: 1.8rem; } .panel-title { font-size: 1.2rem; } }
+    </style>
+</head>
+<body>
+    <div class="scanline-effect"></div>
+
+    <div id="loading-overlay">
+        <div class="loading-box">
+            <div id="loading-text">Initializing Scan...</div>
+            <div class="progress-bar-container"><div id="progress-bar"></div></div>
+            <div id="loading-details">STANDBY...</div>
+        </div>
+    </div>
+
+    <div class="container">
+        <header class="header">
+            <h1>Tactical AI Detection System</h1>
+            <p>Comprehensive Threat Analysis via Multi-Model Fusion</p>
+        </header>
+
+        {% if error %}
+        <div class="error-message">{{ error }}</div>
+        {% endif %}
+
+        <form method="POST" enctype="multipart/form-data" id="upload-form">
+            <div class="grid-container">
+                <aside class="control-panel">
+                    <h2 class="panel-title">MISSION PARAMETERS</h2>
+                    <div class="upload-area" id="upload-area">
+                        <span>[+]</span>
+                        <div>DRAG & DROP TARGET IMAGE OR CLICK TO SELECT</div>
+                    </div>
+                    <input type="file" name="image" id="file-input" accept="image/*">
+                    <div id="filename-display" style="display: none;"></div>
+                    <button type="submit" class="scan-button" id="scan-button" disabled>INITIATE SCAN</button>
+                </aside>
+
+                <main class="results-panel">
+                    <h2 class="panel-title">ANALYSIS & RESULTS</h2>
+                    {% if image_uploaded %}
+                    <div class="image-grid">
+                        <div class="image-container">
+                            <span class="image-label">>_ INCOMING FEED [ORIGINAL]</span>
+                            <img src="data:image/jpeg;base64,{{ original_image }}" alt="Original Image" class="image-display">
+                        </div>
+                        <div class="image-container">
+                            <span class="image-label">>_ AI ANALYSIS [PROCESSED]</span>
+                            <img src="data:image/jpeg;base64,{{ processed_image }}" alt="Processed Image" class="image-display">
+                        </div>
+                    </div>
+                    {% if results %}
+                    <div class="threat-log">
+                        <h3 class="panel-title" style="margin-top: 2rem; font-size: 1.2rem;">THREAT LOG: {{ results|length }} DETECTIONS</h3>
+                        <table class="threat-table">
+                            <thead><tr><th>AI Model</th><th>Classification</th><th>Confidence</th></tr></thead>
+                            <tbody>
+                                {% for det in results %}
+                                <tr><td>{{ det.model_name }}</td><td>{{ det.class }}</td><td>{{ det.confidence }}</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% endif %}
+                    {% else %}
+                    <div style="text-align: center; padding: 4rem; color: var(--text-secondary);">Awaiting target acquisition... System is idle.</div>
+                    {% endif %}
+                </main>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        const uploadArea = document.getElementById('upload-area');
+        const fileInput = document.getElementById('file-input');
+        const scanButton = document.getElementById('scan-button');
+        const filenameDisplay = document.getElementById('filename-display');
+        const uploadForm = document.getElementById('upload-form');
+        
+        // --- Drag and Drop Logic ---
+        uploadArea.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', () => handleFiles(fileInput.files));
+        uploadArea.addEventListener('dragover', (e) => { e.preventDefault(); uploadArea.classList.add('dragover'); });
+        uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
+        uploadArea.addEventListener('drop', (e) => { e.preventDefault(); uploadArea.classList.remove('dragover'); handleFiles(e.dataTransfer.files); });
+
+        function handleFiles(files) {
+            if (files.length > 0) {
+                fileInput.files = files;
+                filenameDisplay.textContent = `TARGET ACQUIRED: ${files[0].name}`;
+                filenameDisplay.style.display = 'block';
+                scanButton.disabled = false;
+            }
+        }
+        
+        // --- Loading Screen Simulation ---
+        const loadingOverlay = document.getElementById('loading-overlay');
+        const loadingText = document.getElementById('loading-text');
+        const progressBar = document.getElementById('progress-bar');
+        const loadingDetails = document.getElementById('loading-details');
+        const modelNames = JSON.parse('{{ model_names_json | tojson | safe }}');
+
+        uploadForm.addEventListener('submit', (e) => {
+            if (fileInput.files.length > 0) {
+                loadingOverlay.style.display = 'flex';
+                simulateLoading();
+            }
+        });
+
+        async function simulateLoading() {
+            const totalModels = modelNames.length;
+            loadingText.textContent = "Processing Feed...";
+            for (let i = 0; i < totalModels; i++) {
+                const progress = ((i + 1) / totalModels) * 100;
+                progressBar.style.width = `${progress}%`;
+                loadingDetails.textContent = `ANALYZING WITH MODEL: ${modelNames[i]}...`;
+                // This timeout simulates the backend processing time for each model.
+                await new Promise(res => setTimeout(res, 200));
+            }
+            loadingText.textContent = "Finalizing Analysis";
+            loadingDetails.textContent = "Scan complete. Rendering results...";
+        }
+    </script>
+</body>
+</html> -->
